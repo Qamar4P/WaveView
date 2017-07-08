@@ -25,6 +25,9 @@ import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WaveView extends View {
 
     /**
@@ -47,7 +50,7 @@ public class WaveView extends View {
     float y1, y2;
 
     private Paint firstWaveColor;
-    private Paint secondWaveColor;
+    private Paint peekWaveColor;
 
     /**
      * @frequency - Then less the frequency more will be the number of
@@ -60,12 +63,13 @@ public class WaveView extends View {
      */
 
     int amplitude = 80;
+    List<Integer> amplitudes = new ArrayList<>();
     private float shift = 0;
 
     private int quadrant;
 
     Path firstWavePath = new Path();
-    Path secondWavePath = new Path();
+    Path peekWavePath = new Path();
 
     /**
      * @speed - Its the velocity of wave in x-axis
@@ -106,10 +110,10 @@ public class WaveView extends View {
         firstWaveColor.setStrokeWidth(2);
         firstWaveColor.setColor(Color.parseColor("#64B5F6"));
 
-        secondWaveColor = new Paint();
-        secondWaveColor.setAntiAlias(true);
-        secondWaveColor.setStrokeWidth(2);
-        secondWaveColor.setColor(Color.parseColor("#2196F3"));
+        peekWaveColor = new Paint();
+        peekWaveColor.setAntiAlias(true);
+        peekWaveColor.setStrokeWidth(2);
+        peekWaveColor.setColor(Color.parseColor("#2196F3"));
 
         handler = new Handler();
         handler.postDelayed(new WaveRunnable(), 16);
@@ -122,25 +126,37 @@ public class WaveView extends View {
         canvas.drawColor(Color.parseColor("#BBDEFB"));
         quadrant = getHeight()/3;
         width = canvas.getWidth();
+        int ampSize = amplitudes.size();
 
-        firstWavePath.moveTo(0, getHeight());
-        secondWavePath.moveTo(0, getHeight());
-        firstWavePath.lineTo(0, quadrant);
-        secondWavePath.lineTo(0, quadrant*2);
+        if (ampSize > 0) {
+            firstWavePath.moveTo(0, getHeight());
+            peekWavePath.moveTo(0, getHeight());
+            firstWavePath.lineTo(0, quadrant);
+            peekWavePath.lineTo(0, quadrant);
 
-        for (int i = 0; i < width + 10; i = i + 10) {
-            x = (float) i;
+            int ampCounter = 0;
+            for (int i = 0; i < width + 10; i = i + 10) {
+                x = (float) i;
 
-            y1 = quadrant + amplitude * (float) Math.sin(((i + 10) * Math.PI / frequency) + shift);
-            y2 = quadrant * 2 + amplitude * (float) Math.sin(((i + 10) * Math.PI / frequency) + shift);
+                if (ampCounter >= ampSize) {
+                    break;
+                }
 
-            firstWavePath.lineTo(x, y1);
-            secondWavePath.lineTo(x, y2);
+                amplitude = amplitudes.get(ampCounter);
+                ampCounter++;
+
+                y1 = quadrant + amplitude * (float) Math.sin(((i + 10) * Math.PI / frequency) + shift);
+                y2 = quadrant * 2 + amplitude * (float) Math.sin(((i + 10) * Math.PI / frequency) + shift);
+
+                firstWavePath.lineTo(x, y1);
+                peekWavePath.lineTo(x, y1);
+            }
+            firstWavePath.lineTo(getWidth(), getHeight());
+            peekWavePath.lineTo(getWidth(), getHeight());
+            canvas.drawPath(firstWavePath, firstWaveColor);
+//        canvas.drawPath(peekWavePath, peekWaveColor);
         }
-        firstWavePath.lineTo(getWidth(), getHeight());
-        secondWavePath.lineTo(getWidth(), getHeight());
-        canvas.drawPath(firstWavePath, firstWaveColor);
-        canvas.drawPath(secondWavePath, secondWaveColor);
+
     }
 
 
@@ -152,7 +168,7 @@ public class WaveView extends View {
         @Override
         public void run() {
             firstWavePath.reset();
-            secondWavePath.reset();
+            peekWavePath.reset();
             shift = shift + speed;
             invalidate();
             handler.postDelayed(new WaveRunnable(), 16);
@@ -166,6 +182,12 @@ public class WaveView extends View {
 
     public void setAmplitude(int amplitude) {
         this.amplitude = amplitude * 20;
+        invalidate();
+    }
+
+    public void addWaveData(int amplitude) {
+        amplitudes.add(0,amplitude);
+        if(amplitudes.size() > width / 10) amplitudes.remove(amplitudes.size() - 1);
         invalidate();
     }
 }

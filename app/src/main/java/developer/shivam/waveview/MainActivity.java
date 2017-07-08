@@ -24,10 +24,10 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
          * Two seekBar to control wave behaviour
          */
         speedSeekBar = (SeekBar) findViewById(R.id.seekBarSpeed);
-        speedSeekBar.setMax(10);
+        speedSeekBar.setMax(100);
         speedSeekBar.setOnSeekBarChangeListener(this);
         amplitudeSeekBar = (SeekBar) findViewById(R.id.seekBarAmplitude);
-        amplitudeSeekBar.setMax(10);
+        amplitudeSeekBar.setMax(200);
         amplitudeSeekBar.setOnSeekBarChangeListener(this);
     }
 
@@ -41,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements SeekBar.OnSeekBar
         } else if (seekBar.getId() == R.id.seekBarAmplitude) {
             if (fromUser) {
                 view.setAmplitude(progress);
+                view.addWaveData(progress);
             }
         }
     }
